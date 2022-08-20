@@ -1,0 +1,101 @@
+version: '3.1'
+
+services:
+
+  postgres:
+    image: postgres:13-alpine
+    restart: always
+    command: postgres -c wal_level=replica -c max_wal_senders=4 -c password_encryption='scram-sha-256'
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-password
+      - POSTGRES_REPLICA_PASSWORD_FILE=/run/secrets/postgres-replica-password
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_INITDB_WALDIR=/var/lib/postgresql/waldata
+      - POSTGRES_AUTH_METHOD=scram-sha-256
+    volumes:
+      - "database_data:/var/lib/postgresql/data"
+      - "database_waldata:/var/lib/postgresql/waldata"
+      - "./add-pg-hba.sh:/docker-entrypoint-initdb.d/add-pg-hba.sh:ro"
+      - "./add-replica-user.sh:/docker-entrypoint-initdb.d/add-replica-user.sh:ro"
+      - "./postgres_password:/run/secrets/postgres-password:ro"
+      - "./postgres_replica_password:/run/secrets/postgres-replica-password:ro"
+      #- "/etc/postgres_password:/run/secrets/postgres-password:ro"
+      #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-password:ro"
+      #- "./postgresql.conf:/etc/postgresql/postgresql.conf"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    links:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=ronnie@swan.ink
+      - PGADMIN_DEFAULT_PASSWORD=changeme
+      - PGADMIN_DISABLE_POSTFIX=1
+      - GUNICORN_ACCESS_LOGFILE=/dev/null
+    volumes:
+      - "pgadmin_data:/var/lib/pgadmin"
+
+  pghoard:
+    image: localhost/pghoard
+    restart: always
+    links:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_REPLICA_USER=replica
+      - POSTGRES_REPLICA_PASSWORD_FILE=/run/secrets/postgres-replica-passwd
+    volumes:
+      - "database_data:/var/lib/postgresql/data"
+      - "database_backup:/backups"
+      - "./postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
+      #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
+
+  # pgbackups:
+  #   image: prodrigestivill/postgres-backup-local
+  #   restart: always
+  #   links:
+  #     - postgres
+  #   depends_on:
+  #     - postgres
+  #   environment:
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_CLUSTER=TRUE
+  #     - POSTGRES_DB=postgres
+  #     - POSTGRES_EXTRA_OPTS=
+  #     - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-passwd
+  #     - SCHEDULE=@daily
+  #     - BACKUP_KEEP_DAYS=7
+  #     - BACKUP_KEEP_WEEKS=4
+  #     - BACKUP_KEEP_MONTHS=6
+  #     - HEALTHCHECK_PORT=8080
+  #   volumes:
+  #     - "/etc/postgres_password:/run/secrets/postgres-passwd:ro"
+  #     - "/postgres/backups:/backups"
+
+volumes:
+  database_data:
+  database_waldata:
+  pgadmin_data:
+  database_backup:
+    # driver_opts:
+    #   type: "nfs"
+    #   o: "addr=172.17.1.80,nfsvers=4,rw,hard,sync"
+    #   device: ":/tank/storage/database"
