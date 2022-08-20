@@ -22,10 +22,10 @@ services:
     volumes:
       - "database_data:/var/lib/postgresql/data"
       - "database_waldata:/var/lib/postgresql/waldata"
-      - "./add-pg-hba.sh:/docker-entrypoint-initdb.d/add-pg-hba.sh:ro"
-      - "./add-replica-user.sh:/docker-entrypoint-initdb.d/add-replica-user.sh:ro"
-      - "./postgres_password:/run/secrets/postgres-password:ro"
-      - "./postgres_replica_password:/run/secrets/postgres-replica-password:ro"
+      - "./add-pg-hba.sh:/docker-entrypoint-initdb.d/add-pg-hba.sh:ro,z"
+      - "./add-replica-user.sh:/docker-entrypoint-initdb.d/add-replica-user.sh:ro,z"
+      - "./postgres_password:/run/secrets/postgres-password:ro,z"
+      - "./postgres_replica_password:/run/secrets/postgres-replica-password:ro,z"
       #- "/etc/postgres_password:/run/secrets/postgres-password:ro"
       #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-password:ro"
       #- "./postgresql.conf:/etc/postgresql/postgresql.conf"
@@ -64,7 +64,7 @@ services:
     volumes:
       - "database_data:/var/lib/postgresql/data"
       - "database_backup:/backups"
-      - "./postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
+      - "./postgres_replica_password:/run/secrets/postgres-replica-passwd:ro,z"
       #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
 
   # pgbackups:
