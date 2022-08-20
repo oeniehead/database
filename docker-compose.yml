@@ -63,7 +63,8 @@ services:
       - POSTGRES_REPLICA_PASSWORD_FILE=/run/secrets/postgres-replica-passwd
     volumes:
       - "database_data:/var/lib/postgresql/data"
-      - "database_backup:/backups"
+      #- "database_backup:/backups"
+      - "/mnt/database:/backups"
       - "./postgres_replica_password:/run/secrets/postgres-replica-passwd:ro,z"
       #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
 
@@ -94,7 +95,7 @@ volumes:
   database_data:
   database_waldata:
   pgadmin_data:
-  database_backup:
+  #database_backup:
     # driver_opts:
     #   type: "nfs"
     #   o: "addr=172.17.1.80,nfsvers=4,rw,hard,sync"
