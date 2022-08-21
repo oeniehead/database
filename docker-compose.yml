@@ -64,7 +64,7 @@ services:
     volumes:
       - "database_data:/var/lib/postgresql/data"
       #- "database_backup:/backups"
-      - "/mnt/database:/backups"
+      - "/mnt/database:/backups:z"
       - "./postgres_replica_password:/run/secrets/postgres-replica-passwd:ro,z"
       #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
 
