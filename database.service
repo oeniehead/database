@@ -2,12 +2,12 @@
 Description=Database compose script
 
 [Service]
-Type=oneshot
+Type=simple
 User=database
 Group=storage
-RemainAfterExit=true
+#RemainAfterExit=true
 WorkingDirectory=/opt/database
-ExecStart=/usr/bin/podman-compose up -d --remove-orphans
+ExecStart=/usr/bin/podman-compose up --remove-orphans
 ExecStop=/usr/bin/podman-compose down
 
 [Install]
