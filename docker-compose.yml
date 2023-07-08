@@ -1,9 +1,8 @@
 version: '3.1'
 
 services:
-
   postgres:
-    image: docker.io/postgres:13-alpine
+    image: docker.io/library/postgres:13-alpine
     restart: always
     command: postgres -c wal_level=replica -c max_wal_senders=4 -c password_encryption='scram-sha-256'
     healthcheck:
@@ -48,25 +47,25 @@ services:
     volumes:
       - "pgadmin_data:/var/lib/pgadmin"
 
-  pghoard:
-    image: localhost/pghoard
-    restart: always
-    links:
-      - postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_REPLICA_USER=replica
-      - POSTGRES_REPLICA_PASSWORD_FILE=/run/secrets/postgres-replica-passwd
-    volumes:
-      - "database_data:/var/lib/postgresql/data"
-      #- "database_backup:/backups"
-      - "/mnt/database:/backups:z"
-      - "./postgres_replica_password:/run/secrets/postgres-replica-passwd:ro,z"
-      #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
+  # pghoard:
+  #   image: localhost/pghoard
+  #   restart: always
+  #   links:
+  #     - postgres
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_PORT=5432
+  #     - POSTGRES_REPLICA_USER=replica
+  #     - POSTGRES_REPLICA_PASSWORD_FILE=/run/secrets/postgres-replica-passwd
+  #   volumes:
+  #     - "database_data:/var/lib/postgresql/data"
+  #     #- "database_backup:/backups"
+  #     - "/mnt/database:/backups:z"
+  #     - "./postgres_replica_password:/run/secrets/postgres-replica-passwd:ro,z"
+  #     #- "/etc/postgres_replica_password:/run/secrets/postgres-replica-passwd:ro"
 
   # pgbackups:
   #   image: prodrigestivill/postgres-backup-local
